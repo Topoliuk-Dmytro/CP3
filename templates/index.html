@@ -1,0 +1,320 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Обчислення визначника матриці</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 40px;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .button-container {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        button {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            font-size: 1.2em;
+            border-radius: 50px;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-weight: bold;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.6);
+        }
+
+        button:active {
+            transform: translateY(0);
+        }
+
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .matrix-container {
+            margin: 30px 0;
+            display: flex;
+            justify-content: center;
+        }
+
+        .matrix {
+            display: inline-block;
+            border: 3px solid #667eea;
+            border-radius: 10px;
+            padding: 20px;
+            background: #f8f9fa;
+        }
+
+        .matrix table {
+            border-collapse: collapse;
+            margin: 0 auto;
+        }
+
+        .matrix td {
+            width: 60px;
+            height: 60px;
+            text-align: center;
+            font-size: 1.5em;
+            font-weight: bold;
+            color: #333;
+            border: 2px solid #ddd;
+            background: white;
+            transition: all 0.3s;
+        }
+
+        .matrix td:hover {
+            background: #e3f2fd;
+            transform: scale(1.1);
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .results {
+            margin-top: 30px;
+            padding: 25px;
+            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+            border-radius: 15px;
+            display: none;
+        }
+
+        .results.show {
+            display: block;
+            animation: fadeIn 0.5s;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .result-item {
+            margin: 15px 0;
+            padding: 15px;
+            background: white;
+            border-radius: 10px;
+            border-left: 5px solid #667eea;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-label {
+            font-weight: bold;
+            color: #555;
+            font-size: 1.1em;
+        }
+
+        .result-value {
+            color: #667eea;
+            font-size: 1.3em;
+            font-weight: bold;
+        }
+
+        .determinant {
+            font-size: 2em !important;
+            color: #764ba2 !important;
+        }
+
+        .loading {
+            text-align: center;
+            display: none;
+            margin: 20px 0;
+        }
+
+        .loading.show {
+            display: block;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .info-section {
+            margin-top: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 10px;
+            font-size: 0.9em;
+            color: #666;
+        }
+
+        .info-section h3 {
+            color: #333;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🧮 Обчислення визначника матриці</h1>
+        <p class="subtitle">Генерація матриці 4×4 з випадковими значеннями (1-9)</p>
+        
+        <div class="button-container">
+            <button id="generateBtn" onclick="generateMatrix()">Згенерувати матрицю</button>
+        </div>
+
+        <div class="loading" id="loading">
+            <div class="spinner"></div>
+            <p style="margin-top: 10px; color: #666;">Обчислення...</p>
+        </div>
+
+        <div class="matrix-container" id="matrixContainer" style="display: none;">
+            <div class="matrix">
+                <table id="matrixTable"></table>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="result-item">
+                <span class="result-label">Визначник:</span>
+                <span class="result-value determinant" id="determinant">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Час виконання:</span>
+                <span class="result-value" id="executionTime">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Пам'ять (поточна):</span>
+                <span class="result-value" id="memoryCurrent">-</span>
+            </div>
+            <div class="result-item">
+                <span class="result-label">Пам'ять (пікова):</span>
+                <span class="result-value" id="memoryPeak">-</span>
+            </div>
+        </div>
+
+        <div class="info-section">
+            <h3>ℹ️ Інформація про систему</h3>
+            <p><strong>Python:</strong> <span id="pythonVersion">-</span></p>
+            <p><strong>NumPy:</strong> <span id="numpyVersion">-</span></p>
+        </div>
+    </div>
+
+    <script>
+        async function generateMatrix() {
+            const btn = document.getElementById('generateBtn');
+            const loading = document.getElementById('loading');
+            const matrixContainer = document.getElementById('matrixContainer');
+            const results = document.getElementById('results');
+            
+            // Disable button and show loading
+            btn.disabled = true;
+            loading.classList.add('show');
+            matrixContainer.style.display = 'none';
+            results.classList.remove('show');
+            
+            try {
+                const response = await fetch('/calculate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    // Display matrix
+                    displayMatrix(data.matrix);
+                    
+                    // Display results
+                    document.getElementById('determinant').textContent = data.determinant.toFixed(6);
+                    document.getElementById('executionTime').textContent = data.execution_time_ms.toFixed(6) + ' мс';
+                    document.getElementById('memoryCurrent').textContent = data.memory_current_kb.toFixed(2) + ' KB';
+                    document.getElementById('memoryPeak').textContent = data.memory_peak_kb.toFixed(2) + ' KB';
+                    document.getElementById('pythonVersion').textContent = data.python_version;
+                    document.getElementById('numpyVersion').textContent = data.numpy_version;
+                    
+                    // Show results
+                    results.classList.add('show');
+                    matrixContainer.style.display = 'flex';
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                alert('Помилка при обчисленні: ' + error.message);
+            } finally {
+                btn.disabled = false;
+                loading.classList.remove('show');
+            }
+        }
+
+        function displayMatrix(matrix) {
+            const table = document.getElementById('matrixTable');
+            table.innerHTML = '';
+            
+            for (let i = 0; i < matrix.length; i++) {
+                const row = document.createElement('tr');
+                for (let j = 0; j < matrix[i].length; j++) {
+                    const cell = document.createElement('td');
+                    cell.textContent = matrix[i][j];
+                    row.appendChild(cell);
+                }
+                table.appendChild(row);
+            }
+        }
+    </script>
+</body>
+</html>
+
